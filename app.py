@@ -40,6 +40,16 @@ if not os.path.exists("trained_model"):
         zip_ref.extractall(".")
     st.success("Trained model downloaded and extracted!")
 
+# Flatten if nested folder
+nested_folder = os.path.join("trained_model", "trained_model")
+if os.path.exists(nested_folder):
+    for item in os.listdir(nested_folder):
+        os.rename(os.path.join(nested_folder, item), os.path.join("trained_model", item))
+    os.rmdir(nested_folder)
+
+st.write("Contents of trained_model folder:", os.listdir("trained_model"))
+
+
 # Detect correct trained_model folder
 def find_trained_folder(base="trained_model"):
     """Return folder containing CSV, embeddings, and sbert_job_model."""
@@ -116,4 +126,5 @@ if st.button("Find Matching Jobs"):
                 st.markdown("---")
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
+
 
