@@ -3,4 +3,6 @@ pandas
 numpy
 sentence-transformers
 pdfplumber
+gdown
+scikit-learn
 fpdf
