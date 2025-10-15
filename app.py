@@ -6,84 +6,90 @@ from model_jobrec import JobRecommender
 import os
 import gdown
 import zipfile
-import glob
 
 st.set_page_config(page_title="AI Job Recommender", layout="wide")
 st.title("AI-Based Job Recommendation System")
 st.write("Upload your resume (PDF) or enter your skills to get personalized job recommendations")
 
-# Sidebar Info
+# Sidebar
 with st.sidebar:
     st.header("About This App")
     st.markdown("""
-**App Purpose:**  
-Recommends top AI/ML and software jobs based on your resume or skills.
+    **App Purpose:**  
+    Recommends top AI/ML and software jobs based on your resume or skills.
 
-**Model:**  
-Uses SentenceTransformer (all-MiniLM-L6-v2) to encode job descriptions and resume text, then computes cosine similarity for recommendations.
+    **Model:**  
+    Uses SentenceTransformer (all-MiniLM-L6-v2) to encode jobs and resume text, then computes cosine similarity.
 
-**Dataset:**  
-300+ curated US-based jobs including roles like Machine Learning Engineer, Data Scientist, NLP Engineer, etc.
+    **Dataset:**  
+    300+ curated US-based jobs including roles like Machine Learning Engineer, Data Scientist, NLP Engineer, etc.
 
-**Tips for Resume Upload:**  
-- Use text-based PDFs, not scanned images.  
-- Include relevant skills and experience.  
-- Manual text input works for short summaries or keywords.
-""")
+    **Tips for Resume Upload:**  
+    - Use text-based PDFs, not scanned images.  
+    - Include relevant skills and experience.  
+    - Manual text input works for short summaries or keywords.
+    """)
 
-# Download and unzip trained model if not exists
+# Check and download trained model
 if not os.path.exists("trained_model"):
     st.info("Downloading trained model from Google Drive...")
-    file_id = "1K_LzTD1OH5MbVHaFtPSICR_lacUGtZnK"
+    file_id = "1K_LzTD1OH5MbVHaFtPSICR_lacUGtZnK"  # Your Google Drive file ID
     url = f"https://drive.google.com/uc?id={file_id}"
     output = "trained_model.zip"
     gdown.download(url, output, quiet=False)
 
-    os.makedirs("trained_model", exist_ok=True)
-
     with zipfile.ZipFile(output, 'r') as zip_ref:
-        zip_ref.extractall("trained_model")
-
+        zip_ref.extractall(".")
     st.success("Trained model downloaded and extracted!")
 
-# Load Model with dynamic path detection
+# Debug: show contents of trained_model
+st.write("Checking contents of trained_model folder:")
+for root, dirs, files in os.walk("trained_model"):
+    st.write(root, dirs, files)
+
+# Load model
 @st.cache_resource
 def load_model():
-    csv_list = glob.glob("trained_model/**/*.csv", recursive=True)
-    model_list = glob.glob("trained_model/**/sbert_job_model", recursive=True)
+    model_path = "trained_model/sbert_job_model"
+    data_path = "trained_model/jobs_embedded.csv"
+    embeddings_path = "trained_model/job_embeddings.npy"
 
-    if not csv_list or not model_list:
-        st.error("Cannot find jobs CSV or model folder in trained_model!")
+    # Verify all required files exist
+    missing_files = []
+    for path in [model_path, data_path, embeddings_path]:
+        if not os.path.exists(path):
+            missing_files.append(path)
+    if missing_files:
+        st.error(f"Cannot find required files:\n" + "\n".join(missing_files))
         st.stop()
 
-    data_path = csv_list[0]
-    model_path = model_list[0]
-
-    return JobRecommender(model_path=model_path, data_path=data_path)
+    return JobRecommender(
+        model_path=model_path,
+        data_path=data_path,
+        embeddings_path=embeddings_path
+    )
 
 recommender = load_model()
 
-# User Input
+# User input
 st.subheader("Upload or Enter Resume Details")
 option = st.radio("Choose your input method:", ("Upload Resume (PDF)", "Enter Text/Skills Manually"))
 
 resume_text = ""
-
 if option == "Upload Resume (PDF)":
     uploaded_file = st.file_uploader("Upload your resume file", type=["pdf"])
-    if uploaded_file is not None:
+    if uploaded_file:
         try:
             with pdfplumber.open(uploaded_file) as pdf:
                 resume_text = " ".join([page.extract_text() for page in pdf.pages if page.extract_text()])
             st.success("Resume text extracted successfully!")
         except Exception as e:
             st.error(f"Error reading PDF: {e}")
-
 elif option == "Enter Text/Skills Manually":
     resume_text = st.text_area("Enter your resume text or skills here:", height=200)
 
 # Recommendations
-if st.button("Find Matching Jobs", help="Click to obtain job recommendations"):
+if st.button("Find Matching Jobs"):
     if resume_text.strip():
         with st.spinner("Analyzing your profile..."):
             recs = recommender.recommend_jobs(resume_text)
@@ -96,10 +102,10 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations"):
             for _, row in recs.iterrows():
                 col1, col2 = st.columns([3, 1])
                 with col1:
-                    st.markdown(f"🏢 **{row.title}** at **{row.company}**")
-                    st.markdown(f"📍 Location: {row.location}")
+                    st.markdown(f"**{row.title}** at **{row.company}**")
+                    st.markdown(f"Location: {row.location}")
                     skills_short = ", ".join(row.skills.split(",")[:5])
-                    st.markdown(f"💡 Skills Required: {skills_short}")
+                    st.markdown(f"Skills Required: {skills_short}")
                 with col2:
                     sim = row.similarity
                     if sim >= 0.7:
@@ -109,7 +115,6 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations"):
                     else:
                         color = "red"
                     st.markdown(f"<span style='color:{color};font-weight:bold'>Score: {sim:.2f}</span>", unsafe_allow_html=True)
-
                 st.markdown("---")
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
