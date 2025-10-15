@@ -1,12 +1,25 @@
+# model_jobrec.py
+
 import pandas as pd
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+import os
 
 class JobRecommender:
     def __init__(self, model_path="trained_model/sbert_job_model",
-                 data_path="trained_model/jobs_embedded.csv"):
+                       data_path="trained_model/jobs_embedded.csv"):
         print("Loading dataset and model...")
+
+        # Ensure paths exist
+        if not os.path.exists(data_path):
+            raise FileNotFoundError(f"Data file not found: {data_path}")
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model folder not found: {model_path}")
+        if not os.path.exists("trained_model/job_embeddings.npy"):
+            raise FileNotFoundError("Job embeddings file not found: trained_model/job_embeddings.npy")
+
+        # Load dataset, model, and embeddings
         self.data = pd.read_csv(data_path)
         self.model = SentenceTransformer(model_path)
         self.job_embeddings = np.load("trained_model/job_embeddings.npy")
@@ -29,4 +42,3 @@ class JobRecommender:
         df_sim = df_sim[df_sim['similarity'] >= similarity_threshold]
 
         return df_sim.head(top_k)[['title','company','location','skills','similarity']]
-
