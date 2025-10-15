@@ -46,8 +46,8 @@ if not os.path.exists("trained_model"):
 @st.cache_resource
 def load_model():
     return JobRecommender(
-        model_path="trained_model/trained_model/trained_model/sbert_job_model",
-        data_path="trained_model/trained_model/trained_model/jobs_embedded.csv"
+        model_path="trained_model/sbert_job_model",
+        data_path="trained_model/jobs_embedded.csv"
     )
 
 recommender = load_model()
@@ -109,5 +109,6 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations", t
                 st.markdown("---")  # horizontal line separator
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
+
 
 
