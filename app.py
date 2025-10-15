@@ -31,7 +31,7 @@ with st.sidebar:
 
 if not os.path.exists("trained_model"):
     st.info("Downloading trained model from Google Drive...")
-    file_id = "1CZwJ3Ma8EXwVSFpr31bLYKGRIhVh7lpi"
+    file_id = "1K_LzTD1OH5MbVHaFtPSICR_lacUGtZnK"
     url = f"https://drive.google.com/uc?id={file_id}"
     output = "trained_model.zip"
     gdown.download(url, output, quiet=False)
@@ -109,6 +109,7 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations", t
                 st.markdown("---")  # horizontal line separator
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
+
 
 
 
