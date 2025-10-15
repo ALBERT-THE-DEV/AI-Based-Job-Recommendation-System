@@ -1,3 +1,5 @@
+# app.py
+
 import streamlit as st
 import pdfplumber
 from model_jobrec import JobRecommender
@@ -5,30 +7,30 @@ import os
 import gdown
 import zipfile
 
-
 st.set_page_config(page_title="AI Job Recommender", layout="wide")
 st.title("AI-Based Job Recommendation System")
 st.write("Upload your resume (PDF) or enter your skills to get personalized job recommendations")
 
+# Sidebar Info
 with st.sidebar:
     st.header("About This App")
     st.markdown("""
-    App Purpose: 
-    Recommends top AI/ML and software jobs based on your resume or skills.
+**App Purpose:**  
+Recommends top AI/ML and software jobs based on your resume or skills.
 
-    Model: 
-    Uses SentenceTransformer (all-MiniLM-L6-v2) to encode job descriptions and resume text, then computes cosine similarity for recommendations.
+**Model:**  
+Uses SentenceTransformer (all-MiniLM-L6-v2) to encode job descriptions and resume text, then computes cosine similarity for recommendations.
 
-    Dataset:  
-    300+ curated US-based jobs including roles like Machine Learning Engineer, Data Scientist, NLP Engineer, etc.
+**Dataset:**  
+300+ curated US-based jobs including roles like Machine Learning Engineer, Data Scientist, NLP Engineer, etc.
 
-    Tips for Resume Upload: 
-    - Use text-based PDFs, not scanned images.  
-    - Include relevant skills and experience.  
-    - Manual text input works for short summaries or keywords.  
-    """)
+**Tips for Resume Upload:**  
+- Use text-based PDFs, not scanned images.  
+- Include relevant skills and experience.  
+- Manual text input works for short summaries or keywords.
+""")
 
-
+# Download and unzip trained model if not exists
 if not os.path.exists("trained_model"):
     st.info("Downloading trained model from Google Drive...")
     file_id = "1K_LzTD1OH5MbVHaFtPSICR_lacUGtZnK"
@@ -37,12 +39,10 @@ if not os.path.exists("trained_model"):
     gdown.download(url, output, quiet=False)
 
     with zipfile.ZipFile(output, 'r') as zip_ref:
-        zip_ref.extractall(".")
+        zip_ref.extractall("trained_model")
     st.success("Trained model downloaded and extracted!")
 
-
 # Load Model
-
 @st.cache_resource
 def load_model():
     return JobRecommender(
@@ -52,9 +52,7 @@ def load_model():
 
 recommender = load_model()
 
-
 # User Input
-
 st.subheader("Upload or Enter Resume Details")
 option = st.radio("Choose your input method:", ("Upload Resume (PDF)", "Enter Text/Skills Manually"))
 
@@ -73,10 +71,8 @@ if option == "Upload Resume (PDF)":
 elif option == "Enter Text/Skills Manually":
     resume_text = st.text_area("Enter your resume text or skills here:", height=200)
 
-
 # Recommendations
-
-if st.button("Find Matching Jobs", help="Click to obtain job recommendations", type="primary"):
+if st.button("Find Matching Jobs", help="Click to obtain job recommendations"):
     if resume_text.strip():
         with st.spinner("Analyzing your profile..."):
             recs = recommender.recommend_jobs(resume_text)
@@ -90,13 +86,11 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations", t
             for _, row in recs.iterrows():
                 col1, col2 = st.columns([3, 1])
                 with col1:
-                    st.markdown(f"{row.title} at {row.company}")
-                    st.markdown(f"Location:{row.location}")
-                    # Trim skills if too long
+                    st.markdown(f"🏢 **{row.title}** at **{row.company}**")
+                    st.markdown(f"📍 Location: {row.location}")
                     skills_short = ", ".join(row.skills.split(",")[:5])
-                    st.markdown(f"Skills Required:{skills_short}")
+                    st.markdown(f"💡 Skills Required: {skills_short}")
                 with col2:
-                    # Color-coded similarity
                     sim = row.similarity
                     if sim >= 0.7:
                         color = "green"
@@ -105,10 +99,11 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations", t
                     else:
                         color = "red"
                     st.markdown(f"<span style='color:{color};font-weight:bold'>Score: {sim:.2f}</span>", unsafe_allow_html=True)
-                
-                st.markdown("---")  # horizontal line separator
+
+                st.markdown("---")
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
+
 
 
 
