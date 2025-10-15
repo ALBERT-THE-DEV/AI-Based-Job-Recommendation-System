@@ -38,19 +38,23 @@ if not os.path.exists("trained_model/jobs_embedded.csv"):
     output = "trained_model.zip"
     gdown.download(url, output, quiet=False)
 
-    # Ensure trained_model folder exists
     os.makedirs("trained_model", exist_ok=True)
 
-    # Extract only the contents of the zip into trained_model/
+    # Flatten zip extraction to trained_model/
     with zipfile.ZipFile(output, 'r') as zip_ref:
         for member in zip_ref.namelist():
-            filename = os.path.basename(member)
-            if filename:  # skip directories
-                source = zip_ref.open(member)
-                target_path = os.path.join("trained_model", filename)
-                with open(target_path, "wb") as target:
-                    with source:
-                        target.write(source.read())
+            # Skip directories
+            if member.endswith("/"):
+                continue
+            # Remove first folder in path (if exists)
+            filename = "/".join(member.split("/")[1:])
+            if not filename:
+                continue
+            target_path = os.path.join("trained_model", filename)
+            os.makedirs(os.path.dirname(target_path), exist_ok=True)
+            with zip_ref.open(member) as source, open(target_path, "wb") as target:
+                target.write(source.read())
+
     st.success("Trained model downloaded and extracted!")
 
 # Load Model
@@ -114,7 +118,6 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations"):
                 st.markdown("---")
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
-
 
 
 
