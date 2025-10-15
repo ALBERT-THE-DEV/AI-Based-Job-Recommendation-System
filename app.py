@@ -31,15 +31,26 @@ Uses SentenceTransformer (all-MiniLM-L6-v2) to encode job descriptions and resum
 """)
 
 # Download and unzip trained model if not exists
-if not os.path.exists("trained_model"):
+if not os.path.exists("trained_model/jobs_embedded.csv"):
     st.info("Downloading trained model from Google Drive...")
     file_id = "1K_LzTD1OH5MbVHaFtPSICR_lacUGtZnK"
     url = f"https://drive.google.com/uc?id={file_id}"
     output = "trained_model.zip"
     gdown.download(url, output, quiet=False)
 
+    # Ensure trained_model folder exists
+    os.makedirs("trained_model", exist_ok=True)
+
+    # Extract only the contents of the zip into trained_model/
     with zipfile.ZipFile(output, 'r') as zip_ref:
-        zip_ref.extractall("trained_model")
+        for member in zip_ref.namelist():
+            filename = os.path.basename(member)
+            if filename:  # skip directories
+                source = zip_ref.open(member)
+                target_path = os.path.join("trained_model", filename)
+                with open(target_path, "wb") as target:
+                    with source:
+                        target.write(source.read())
     st.success("Trained model downloaded and extracted!")
 
 # Load Model
