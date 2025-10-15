@@ -6,6 +6,7 @@ from model_jobrec import JobRecommender
 import os
 import gdown
 import zipfile
+import glob
 
 st.set_page_config(page_title="AI Job Recommender", layout="wide")
 st.title("AI-Based Job Recommendation System")
@@ -31,7 +32,7 @@ Uses SentenceTransformer (all-MiniLM-L6-v2) to encode job descriptions and resum
 """)
 
 # Download and unzip trained model if not exists
-if not os.path.exists("trained_model/jobs_embedded.csv"):
+if not os.path.exists("trained_model"):
     st.info("Downloading trained model from Google Drive...")
     file_id = "1K_LzTD1OH5MbVHaFtPSICR_lacUGtZnK"
     url = f"https://drive.google.com/uc?id={file_id}"
@@ -40,30 +41,25 @@ if not os.path.exists("trained_model/jobs_embedded.csv"):
 
     os.makedirs("trained_model", exist_ok=True)
 
-    # Flatten zip extraction to trained_model/
     with zipfile.ZipFile(output, 'r') as zip_ref:
-        for member in zip_ref.namelist():
-            # Skip directories
-            if member.endswith("/"):
-                continue
-            # Remove first folder in path (if exists)
-            filename = "/".join(member.split("/")[1:])
-            if not filename:
-                continue
-            target_path = os.path.join("trained_model", filename)
-            os.makedirs(os.path.dirname(target_path), exist_ok=True)
-            with zip_ref.open(member) as source, open(target_path, "wb") as target:
-                target.write(source.read())
+        zip_ref.extractall("trained_model")
 
     st.success("Trained model downloaded and extracted!")
 
-# Load Model
+# Load Model with dynamic path detection
 @st.cache_resource
 def load_model():
-    return JobRecommender(
-        model_path="trained_model/sbert_job_model",
-        data_path="trained_model/jobs_embedded.csv"
-    )
+    csv_list = glob.glob("trained_model/**/*.csv", recursive=True)
+    model_list = glob.glob("trained_model/**/sbert_job_model", recursive=True)
+
+    if not csv_list or not model_list:
+        st.error("Cannot find jobs CSV or model folder in trained_model!")
+        st.stop()
+
+    data_path = csv_list[0]
+    model_path = model_list[0]
+
+    return JobRecommender(model_path=model_path, data_path=data_path)
 
 recommender = load_model()
 
@@ -97,7 +93,6 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations"):
         else:
             st.success("Here are your top job matches:")
 
-            # Display jobs in column layout with color-coded similarity
             for _, row in recs.iterrows():
                 col1, col2 = st.columns([3, 1])
                 with col1:
@@ -118,7 +113,3 @@ if st.button("Find Matching Jobs", help="Click to obtain job recommendations"):
                 st.markdown("---")
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
-
-
-
-
