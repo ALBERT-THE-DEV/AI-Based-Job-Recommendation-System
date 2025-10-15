@@ -1,5 +1,3 @@
-# app.py
-
 import streamlit as st
 import pdfplumber
 from model_jobrec import JobRecommender
@@ -30,10 +28,10 @@ with st.sidebar:
     - Manual text input works for short summaries or keywords.
     """)
 
-# Check and download trained model
+# Download and extract trained model if not exists
 if not os.path.exists("trained_model"):
     st.info("Downloading trained model from Google Drive...")
-    file_id = "1K_LzTD1OH5MbVHaFtPSICR_lacUGtZnK"  # Your Google Drive file ID
+    file_id = "1K_LzTD1OH5MbVHaFtPSICR_lacUGtZnK"
     url = f"https://drive.google.com/uc?id={file_id}"
     output = "trained_model.zip"
     gdown.download(url, output, quiet=False)
@@ -42,31 +40,34 @@ if not os.path.exists("trained_model"):
         zip_ref.extractall(".")
     st.success("Trained model downloaded and extracted!")
 
-# Debug: show contents of trained_model
-st.write("Checking contents of trained_model folder:")
-for root, dirs, files in os.walk("trained_model"):
-    st.write(root, dirs, files)
+# Detect correct trained_model folder
+def find_trained_folder(base="trained_model"):
+    """Return the correct folder containing CSV, embeddings, and sbert_job_model."""
+    # Check base folder
+    required_items = ["jobs_embedded.csv", "job_embeddings.npy", "sbert_job_model"]
+    if all(os.path.exists(os.path.join(base, item)) for item in required_items):
+        return base
+    # Check for first subfolder
+    subfolders = [f.path for f in os.scandir(base) if f.is_dir()]
+    for folder in subfolders:
+        if all(os.path.exists(os.path.join(folder, item)) for item in required_items):
+            return folder
+    return None
+
+trained_folder = find_trained_folder()
+if not trained_folder:
+    st.error("Cannot find jobs CSV or model folder in trained_model!")
+    st.stop()
+
+st.write(f"✅ Using trained model folder: {trained_folder}")
 
 # Load model
 @st.cache_resource
 def load_model():
-    model_path = "trained_model/sbert_job_model"
-    data_path = "trained_model/jobs_embedded.csv"
-    embeddings_path = "trained_model/job_embeddings.npy"
-
-    # Verify all required files exist
-    missing_files = []
-    for path in [model_path, data_path, embeddings_path]:
-        if not os.path.exists(path):
-            missing_files.append(path)
-    if missing_files:
-        st.error(f"Cannot find required files:\n" + "\n".join(missing_files))
-        st.stop()
-
     return JobRecommender(
-        model_path=model_path,
-        data_path=data_path,
-        embeddings_path=embeddings_path
+        model_path=os.path.join(trained_folder, "sbert_job_model"),
+        data_path=os.path.join(trained_folder, "jobs_embedded.csv"),
+        embeddings_path=os.path.join(trained_folder, "job_embeddings.npy")
     )
 
 recommender = load_model()
@@ -98,7 +99,6 @@ if st.button("Find Matching Jobs"):
             st.warning("No closely matching jobs found in our dataset.")
         else:
             st.success("Here are your top job matches:")
-
             for _, row in recs.iterrows():
                 col1, col2 = st.columns([3, 1])
                 with col1:
@@ -108,12 +108,7 @@ if st.button("Find Matching Jobs"):
                     st.markdown(f"Skills Required: {skills_short}")
                 with col2:
                     sim = row.similarity
-                    if sim >= 0.7:
-                        color = "green"
-                    elif sim >= 0.5:
-                        color = "orange"
-                    else:
-                        color = "red"
+                    color = "green" if sim >= 0.7 else "orange" if sim >= 0.5 else "red"
                     st.markdown(f"<span style='color:{color};font-weight:bold'>Score: {sim:.2f}</span>", unsafe_allow_html=True)
                 st.markdown("---")
     else:
