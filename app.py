@@ -42,21 +42,24 @@ if not os.path.exists("trained_model"):
 
 # Detect correct trained_model folder
 def find_trained_folder(base="trained_model"):
-    """Return the correct folder containing CSV, embeddings, and sbert_job_model."""
-    # Check base folder
+    """Return folder containing CSV, embeddings, and sbert_job_model."""
     required_items = ["jobs_embedded.csv", "job_embeddings.npy", "sbert_job_model"]
+
+    # Check base folder
     if all(os.path.exists(os.path.join(base, item)) for item in required_items):
         return base
-    # Check for first subfolder
+
+    # Check first-level subfolders
     subfolders = [f.path for f in os.scandir(base) if f.is_dir()]
     for folder in subfolders:
         if all(os.path.exists(os.path.join(folder, item)) for item in required_items):
             return folder
+
     return None
 
 trained_folder = find_trained_folder()
 if not trained_folder:
-    st.error("Cannot find jobs CSV or model folder in trained_model!")
+    st.error("Cannot find jobs CSV, embeddings, or model folder inside trained_model!")
     st.stop()
 
 st.write(f"✅ Using trained model folder: {trained_folder}")
@@ -113,3 +116,4 @@ if st.button("Find Matching Jobs"):
                 st.markdown("---")
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
+
