@@ -9,7 +9,7 @@ class JobRecommender:
         print("Loading dataset and model...")
         self.data = pd.read_csv(data_path)
         self.model = SentenceTransformer(model_path)
-        self.job_embeddings = np.load("trained_model/trained_model/trained_model/job_embeddings.npy")
+        self.job_embeddings = np.load("trained_model/job_embeddings.npy")
 
     def recommend_jobs(self, resume_text, top_k=5, similarity_threshold=0.3):
         # Embed user input
@@ -29,3 +29,4 @@ class JobRecommender:
         df_sim = df_sim[df_sim['similarity'] >= similarity_threshold]
 
         return df_sim.head(top_k)[['title','company','location','skills','similarity']]
+
