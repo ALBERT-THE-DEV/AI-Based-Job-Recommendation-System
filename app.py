@@ -1,7 +1,6 @@
 import streamlit as st
 import pdfplumber
 from model_jobrec import JobRecommender
-import os
 
 st.set_page_config(page_title="AI Job Recommender", layout="wide")
 st.title("AI-Based Job Recommendation System")
@@ -11,13 +10,13 @@ st.write("Upload your resume (PDF) or enter your skills to get personalized job 
 with st.sidebar:
     st.header("About This App")
     st.markdown("""
-    **App Purpose:** Recommends top AI/ML and software jobs based on your resume or skills.
+    App Purpose: Recommends top AI/ML and software jobs based on your resume or skills.
 
-    **Model:** SentenceTransformer (all-MiniLM-L6-v2) to encode job descriptions and resume text, then computes cosine similarity.
+    Model: SentenceTransformer (all-MiniLM-L6-v2) to encode job descriptions and resume text, then computes cosine similarity.
 
-    **Dataset:** 300+ curated US-based jobs including ML Engineer, Data Scientist, NLP Engineer, etc.
+    Dataset: 300+ curated US-based jobs including ML Engineer, Data Scientist, NLP Engineer, etc.
 
-    **Tips for Resume Upload:**
+    Tips for Resume Upload:
     - Use text-based PDFs (not scanned images).  
     - Include relevant skills and experience.  
     - Manual text input works for short summaries or keywords.
@@ -76,3 +75,4 @@ if st.button("Find Matching Jobs"):
                 st.markdown("---")
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
+
