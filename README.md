@@ -19,7 +19,7 @@ Files in Repository
 
 -model_jobrec.py: Core model for job embedding and recommendation
 
--requirements.txt: Required Python packages
+-requirements.txt: Required packages to be installed
 
 Steps to run the program 
 ------------------------
