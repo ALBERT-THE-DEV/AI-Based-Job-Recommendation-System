@@ -1,5 +1,5 @@
 # AI-Based-Job-Recommendation-System
-This is a sample project that showcases an AI-powered job recommendation system built with SentenceTransformer and locally hosted on Streamlit. The web app recommends relevant AI/ML and software engineering jobs based on your resume text or skills input, matching your profile with the closest job descriptions using semantic similarity.
+This is a project that showcases an AI-powered job recommendation system built with SentenceTransformer and locally hosted on Streamlit. The web app recommends relevant AI/ML and software engineering jobs based on your resume text or skills input, matching your profile with the closest job descriptions using semantic similarity.
 
 Project Overview
 ----------------
