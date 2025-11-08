@@ -80,18 +80,6 @@ where,
 
 -similarity → The resulting similarity scores between the resume and each job posting.
 
-Feature Importance Analysis
----------------------------
-After training, the following features were found to have the most significant influence on the job recommendations based on similarity score:
-
-| Skill Area           |  Skill sets                             |
-| -------------------- | --------------------------------------- |
-| Machine Learning     | TensorFlow, PyTorch, Scikit-learn       |
-| NLP                  | Transformers, BERT, Text Classification |
-| Data Science         | Pandas, NumPy, Data Visualization       |
-| Software Development | Python, APIs, Flask, Git                |
-| Cloud/DevOps         | AWS, Docker, CI/CD                      |
-
 Model Performance
 -----------------
 The SentenceTransformer-based model achieved an average cosine similarity of 0.405 across all job embeddings, with values ranging from 0.091 (minimum) to 1.000 (maximum). For sample resumes, the top 5 job matches consistently reached similarity scores around 0.70, reflecting strong alignment between candidate profiles and job descriptions. The model provides accurate, fast, and matching recommendations for tech roles within a short duration.
