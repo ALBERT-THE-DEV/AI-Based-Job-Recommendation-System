@@ -3,7 +3,7 @@ import pdfplumber
 from model_jobrec import JobRecommender
 
 st.set_page_config(page_title="AI Job Recommender", layout="wide")
-st.title("AI-Based Job Recommendation System")
+st.title("JobMatch")
 st.write("Upload your resume (PDF) or enter your skills to get personalized job recommendations")
 
 # Sidebar info
@@ -75,4 +75,5 @@ if st.button("Find Matching Jobs"):
                 st.markdown("---")
     else:
         st.warning("Please provide your resume text or upload a valid PDF file.")
+
 
